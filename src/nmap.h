@@ -1,218 +1,140 @@
 #ifndef NMAP_H
 #define NMAP_H
 
-#ifndef MAP_CAP
-#define MAP_CAP 100
-#endif
-
-struct Bucket {
-    void *key;
-    void *value;
-    int hash;
-    struct Bucket *next;
-};
-
-typedef struct Bucket Bucket;
+#include "common.h"
 
 struct NMap {
-    Bucket **_buckets;
-    size_t _bucket_count;
-    int (*_hash)(void *key);
-    bool (*_cmp)(void *a, void *b);
-    size_t _size;
+    uint64_t *_keys;
+    uint64_t *_values;
+    size_t _len;
+    size_t _cap;
 };
 
 typedef struct NMap NMap;
 
+static uint64_t hash_mix(uint64_t key) {
+    key ^= (key >> 33);
+    key *= 0xff51afd7ed558ccd;
+    key ^= (key >> 33);
+    key *= 0xc4ceb9fe1a85ec53;
+    key ^= (key >> 33);
 
-int nhash(void *key) {
-    int hash = 0;
-    char *s = (char *)key;
-    size_t len = strlen(s);
-    for (size_t i = 0; i < len; i++) {
-        hash = hash * 31 + *s;
-        s++;
-    }
-
-    return hash; 
+    return key;
 }
 
-NMap nmap_create() {
-    NMap map = {};
-    size_t load = MAP_CAP * 4 / 3;
-    map._bucket_count = 1;
-    while (map._bucket_count <= load) {
-        map._bucket_count <<= 1;
-    }
+void nmap_grow(NMap *map, size_t cap);
 
-    map._buckets = xcalloc(map._bucket_count, sizeof(Bucket*));
-    map._size = 0;
-    map._hash = nhash;
-  
-    return map;
-}
-
-
-void nmap_set_hash_func(NMap *nmap, int (*hash)(void *key)) {
-    nmap->_hash = hash;
-}
-
-void nmap_set_cmp_func(NMap *nmap, bool (*cmp)(void *a, void *b)) {
-    nmap->_cmp = cmp;
-}
-
-bool nmap_cmp_int(void *key_a, void *key_b) {
-    int a = *((int*) key_a);
-    int b = *((int*) key_b);
-
-    return a == b;
-}
-
-bool nmap_cmp_char(void *key_a, void *key_b) {
-
-    char *a = (char *) key_a;
-    char *b = (char *) key_b;
-
-    return strcmp(a, b) == 0;
-}
-
-static inline int nmap__hash(NMap *nmap, void *key) {
-    int value = nmap->_hash(key);
+void nmap_put_u64(NMap *map, uint64_t key, uint64_t value) {
+    if (!key || !value)
+        return;
     
-    value += ~(value << 9);
-    value ^= (((unsigned int) value) >> 14);
-    value += (value << 4);
-    value ^= (((unsigned int) value) >> 10);
+    if (map->_len >= map->_cap)
+        nmap_grow(map, map->_cap*2);
 
-    return value;
-}
-
-inline size_t nmap_size(NMap *nmap) {
-    return nmap->_size;
-}
-
-static inline size_t nmap__get_index(int bucket_count, int hash) {
-    size_t index = ((size_t)hash) & (bucket_count - 1);
-    
-    return index;
-}
-
-static inline bool nmap__cmp(NMap *nmap, Bucket *bucket, void *key, int hash) {
-    if (bucket->key == key) {
-        return true;
-    }
-
-    if (bucket->hash != hash) {
-        return false;
-    }
-
-    return nmap->_cmp(bucket->key, key);
-}
-
-static Bucket *nmap__create_bucket(void *key, void *value, int hash) {
-    Bucket *bucket = xmalloc(sizeof(Bucket));
-    bucket->key = key;
-    bucket->value = value;
-    bucket->hash = hash;
-
-    return bucket;
-} 
-
-static void nmap__grow(NMap *nmap) {
-    if (nmap->_size > (nmap->_bucket_count * 3 / 4)) {
-        size_t new_bucket_count = nmap->_bucket_count << 1;
-        Bucket **new_buckets = xcalloc(new_bucket_count, sizeof(Bucket *));
-
-        for (size_t i = 0; i < nmap->_bucket_count; i++) {
-            Bucket *bucket = nmap->_buckets[i];
-            while (bucket != NULL) {
-                Bucket *next = bucket->next;
-                size_t index = nmap__get_index(new_bucket_count, bucket->hash);
-                bucket->next = new_buckets[index];
-                new_buckets[index] = bucket;
-                bucket = next;
-            }
-        }
-
-        free(nmap->_buckets);
-        nmap->_buckets = new_buckets;
-        nmap->_bucket_count = new_bucket_count;
-    }
-}
-
-void nmap_put(NMap *nmap, void *key, void *value) {
-    int hash = nmap__hash(nmap, key);
-    size_t index = nmap__get_index(nmap->_bucket_count, hash);
-
-    Bucket **bucket = &(nmap->_buckets[index]);
+    assert(IS_POW2(map->_cap));
+    size_t i = (size_t)hash_mix(key);
     for (;;) {
-        Bucket *current = *bucket;
-        if (current == NULL) {
-            *bucket = nmap__create_bucket(key, value, hash);
-            if (*bucket == NULL) {
-                return;
-            }
-            
-            nmap->_size++;
-            nmap__grow(nmap);
-            
+        i &= map->_cap - 1;
+        if (!map->_keys[i]) {
+            map->_len++;
+            map->_keys[i] = key;
+            map->_values[i] = value;
+            return;
+        } else if (map->_keys[i] == key) {
+            map->_values[i] = value;
             return;
         }
 
-        if (nmap__cmp(nmap, current, key, hash)) {
-            current->value = value;
+        i++;
+    }
+}
+
+NMap nmap_init() {
+    size_t cap = 16;
+    NMap result = {
+        ._keys = xcalloc(cap, sizeof(uint64_t)),
+        ._values = xmalloc(cap * sizeof(uint64_t)),
+        ._cap = cap
+    };
+
+    return result;
+}
+
+void nmap_grow(NMap *map, size_t cap) {
+    cap = CLAMP_MIN(cap, 16);
+    NMap new_map = {
+        ._keys = xcalloc(cap, sizeof(uint64_t)),
+        ._values = xmalloc(cap * sizeof(uint64_t)),
+        ._cap = cap
+    };
+
+    for (size_t i = 0; i < map->_cap; i++) {
+        if (map->_keys[i])
+            nmap_put_u64(&new_map, map->_keys[i], map->_values[i]);
+    }
+
+    free(map->_keys);
+    free(map->_values);
+    *map = new_map;
+}
+
+uint64_t nmap_get_u64(NMap *map, uint64_t key) {
+    if (map->_len == 0)
+        return 0;
+
+    assert(IS_POW2(map->_cap));
+    assert(map->_len < map->_cap);
+    
+    size_t i = (size_t)hash_mix(key);
+    for (;;) {
+        i &= map->_cap - 1;
+        if (map->_keys[i] == key) 
+            return map->_values[i];
+        else if (!map->_keys[i])
+            return 0;
+
+        i++;
+    }
+
+    return 0;
+}
+
+void nmap_del_u64(NMap *map, uint64_t key) {
+    size_t i = (size_t)hash_mix(key);
+    for (;;) {
+        i &= map->_cap - 1;
+        if (map->_keys[i] == key) {
+            map->_keys[i] = 0;
+            map->_values[i] = 0;
+   
             return;
         }
-
-        bucket = &current->next;
     }
 }
 
-void nmap_del(NMap *nmap, void *key) {
-    int hash = nmap__hash(nmap, key);
-    size_t index = nmap__get_index(nmap->_bucket_count, hash);
-
-    Bucket **bucket = &(nmap->_buckets[index]);
-    Bucket *current;
-    while ((current = *bucket) != NULL) {
-        if (nmap__cmp(nmap, current, key, hash)) {
-            *bucket = current->next;
-            free(current);
-            current = NULL;
-            nmap->_size--;
-            return;
-        }
-
-        bucket = &current->next;
-    }
+void nmap_del(NMap *map, const void *key) {
+    nmap_del_u64(map, (uint64_t)(uintptr_t)key);
 }
 
-void nmap_free(NMap *nmap) {
-    for (size_t i = 0; i < nmap->_bucket_count; i++) {
-        Bucket *bucket = nmap->_buckets[i];
-        while (bucket != NULL) {
-            Bucket *next = bucket->next;
-            free(bucket);
-            bucket = next;
-        }
-    }
-
-    free(nmap->_buckets);
+void nmap_put(NMap *map, const void *key, void *value) {
+    nmap_put_u64(map, (uint64_t)(uintptr_t)key, (uint64_t)(uintptr_t)value);
 }
 
-void *nmap_get(NMap *nmap, void *key) {
-    int hash = nmap__hash(nmap, key);
-    size_t index = nmap__get_index(nmap->_bucket_count, hash);
-    Bucket *bucket = nmap->_buckets[index];
-    while (bucket != NULL) {
-        if (nmap__cmp(nmap, bucket, key, hash)) {
-            return bucket->value;
-        }
+void *nmap_get(NMap *map, const void *key) {
+    void *result = (void *)(uintptr_t)nmap_get_u64(map, (uint64_t)(uintptr_t)key);
 
-        bucket = bucket->value;
-    }
+    return result;
+}
 
-    return NULL;
+void nmap_free(NMap *map) {
+    if (map == NULL)
+        return;
+
+    free(map->_keys);
+    free(map->_values);
+    map->_keys = map->_values = NULL;
+    map->_len = map->_cap = 0;
+    map = NULL;
 }
 
 #endif

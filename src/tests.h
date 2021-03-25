@@ -111,12 +111,24 @@ void test_narr() {
 }
 
 void test_nmap() {
-    NMap users = nmap_create();
-    nmap_put(&users, "foo", "bar");
-    nmap_del(&users, "foo");
+    NMap users = nmap_init();
+    nmap_put(&users, "key", "val");
+    nmap_put(&users, "key", "foo");
+    nmap_put(&users, "new", "bar");
+    nmap_del(&users, "new");
+    char *key = nmap_get(&users, "key");
+    if (key != NULL) 
+       printf("Key is %s\n", key);
 
-    //TODO: fix free
-   // nmap_free(&users);
+
+   NString nstr = nstr_create("SomeData");
+   nmap_put(&users, "data", &nstr);
+   NString *val = nmap_get(&users, "data");
+   if (val != NULL)
+       nstr_print(val);
+
+   nstr_free(val);
+   nmap_free(&users);
 }
 
 void run_tests() {

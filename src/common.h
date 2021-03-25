@@ -13,6 +13,7 @@
 #define MAX(x, y) ((x) >= (y) ? (x) : (y))
 #define CLAMP_MAX(x, max) MIN(x, max)
 #define CLAMP_MIN(x, min) MAX(x, min)
+#define IS_POW2(x) (((x) != 0) && ((x) & ((x)-1)) == 0)
 
 void *xmalloc(size_t len) {
     void *ret = malloc(len);
