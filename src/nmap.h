@@ -26,7 +26,7 @@ struct Iterable {
 
 typedef struct Iterable Iterable;
 
-static uint64_t hash_mix(uint64_t key) {
+static uint64_t hash_murmur(uint64_t key) {
     key *= 0xff51afd7ed558ccd;
     key ^= key >> 32;
 
@@ -43,7 +43,7 @@ void nmap_put_u64(NMap *map, uint64_t key, uint64_t value) {
         nmap_grow(map, map->_cap*2);
 
     assert(IS_POW2(map->_cap));
-    size_t i = (size_t)hash_mix(key);
+    size_t i = (size_t)hash_murmur(key);
     for (;;) {
         i &= map->_cap - 1;
         if (!map->_keys[i]) {
@@ -96,7 +96,7 @@ uint64_t nmap_get_u64(NMap *map, uint64_t key) {
     assert(IS_POW2(map->_cap));
     assert(map->_len < map->_cap);
 
-    size_t i = (size_t)hash_mix(key);
+    size_t i = (size_t)hash_murmur(key);
     for (;;) {
         i &= map->_cap - 1;
         if (map->_keys[i] == key) 
@@ -111,7 +111,7 @@ uint64_t nmap_get_u64(NMap *map, uint64_t key) {
 }
 
 void nmap_del_u64(NMap *map, uint64_t key) {
-    size_t i = (size_t)hash_mix(key);
+    size_t i = (size_t)hash_murmur(key);
     for (;;) {
         i &= map->_cap - 1;
         if (map->_keys[i] == key) {

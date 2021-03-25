@@ -68,6 +68,7 @@ void test_nstr_compare() {
 }
 
 void test_nstr_substr() {
+
     NString nstr = nstr_create("Testbar");
     NString ret = nstr_substr(&nstr, 0, 2);
 
@@ -89,13 +90,16 @@ void test_nstr_substr() {
 }
 
 void test_nstr() {
+
     test_nstr_create();
     test_nstr_compare();
     test_nstr_substr();
+
+    printf("test string: Passed\n");
 }
 
 void test_narr() {
-    printf("test array\n"); 
+
     int *arr = NULL;
     nbuf_push(arr, 20);
     nbuf_push(arr, 30);
@@ -108,47 +112,33 @@ void test_narr() {
     }
 
     nbuf_free(arr);
+
+    printf("test array: Passed\n"); 
 }
 
 void test_nmap() {
-    NMap users = nmap_init();
-    nmap_put(&users, "key", "val");
-    nmap_put(&users, "key", "foo");
-    nmap_put(&users, "new", "bar");
-    assert(2 == nmap_len(&users));
 
-    Iterable it = nmap_iter(&users);
+    NMap data = nmap_init();
+    for (size_t i = 0; i < 1024; i++) {
+        nmap_put(&data, (void *)i, (void *)(i + 1));
+    }
+
+    for (size_t i = 1; i < 1024; i++) {
+        void *val = nmap_get(&data, (void *)i);
+        assert(val == (void *)(i+1));
+    }
+
+    Iterable it = nmap_iter(&data);
     for (size_t i = 0; i < it.index; i++) {
         Pair p = it.pairs[i];
-        printf("Pair <%s, %s>\n", (char *)p.key, (char *)p.value);
+        (void)p;
+        // printf("Pair <%d, %d>\n", (int)p.key, (int)p.value);
     }
 
     free_iter(&it);
+    nmap_free(&data);
 
-    nmap_del(&users, "new");
-    char *key = nmap_get(&users, "key");
-    assert(key != NULL);
-
-    NString nstr = nstr_create("SomeData");
-    nmap_put(&users, "data", &nstr);
-    NString *val = nmap_get(&users, "data");
-    assert(val != NULL);
-
-    nstr_free(val);
-
-    for (size_t i = 0; i < 1024; i++) {
-        nmap_put(&users, (void *)i, (void *)(i + 1));
-    }
-
-    nmap_del(&users, "key");
-    nmap_del(&users, "data");
-    it = nmap_iter(&users);
-    for (size_t i = 0; i < it.index; i++) {
-        Pair p = it.pairs[i];
-        printf("Pair <%d, %d>\n", (int)p.key, (int)p.value);
-    }
-
-    nmap_free(&users);
+    printf("test map: Passed\n");
 }
 
 void run_tests() {
