@@ -126,6 +126,15 @@ void *nmap_get(NMap *map, const void *key) {
     return result;
 }
 
+
+inline size_t nmap_len(NMap *map) {
+    return map->_len;
+}
+
+inline size_t nmap_cap(NMap *map) {
+    return map->_cap;
+}
+
 void nmap_free(NMap *map) {
     if (map == NULL)
         return;
