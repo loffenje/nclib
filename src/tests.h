@@ -29,15 +29,15 @@ void test_nstr_create() {
     NString nstr2 = nstr_create("Hello, world!");
     nstr_copy(&nstr2, &nstr);
     assert(nstr_len(&nstr2) == 900);
-    
+
     NString nstr3 = nstr_create("Lorem ipsum dollor! aaaaaaaaaaaaaaaa");
     nstr_copy(&nstr2, &nstr3);
     assert(nstr_len(&nstr2) == nstr_len(&nstr3));
 
     nstr_clear(&nstr);
     assert(nstr_empty(&nstr));
-    
-    nstr_free(&nstr3);    
+
+    nstr_free(&nstr3);
     nstr_free(&nstr2);
     nstr_free(&nstr);
 }
@@ -46,7 +46,7 @@ void test_nstr_create() {
 void test_nstr_compare() {
     NString a = nstr_create("Test");
     NString b = nstr_create("Test");
-    
+
     assert(nstr_compare(&a, &b) == 0);
 
     NString c = {};
@@ -80,7 +80,7 @@ void test_nstr_substr() {
     assert(nstr_compare_raw(&sub, "yzfo") == 0);
 
     NString test = nstr_substr(&nstr, 21, 2);
-    
+
     nstr_print(&test);
     nstr_free(&nstr);
     nstr_free(&nstr2);
@@ -115,20 +115,40 @@ void test_nmap() {
     nmap_put(&users, "key", "val");
     nmap_put(&users, "key", "foo");
     nmap_put(&users, "new", "bar");
+    assert(2 == nmap_len(&users));
+
+    Iterable it = nmap_iter(&users);
+    for (size_t i = 0; i < it.index; i++) {
+        Pair p = it.pairs[i];
+        printf("Pair <%s, %s>\n", (char *)p.key, (char *)p.value);
+    }
+
+    free_iter(&it);
+
     nmap_del(&users, "new");
     char *key = nmap_get(&users, "key");
-    if (key != NULL) 
-       printf("Key is %s\n", key);
+    assert(key != NULL);
 
+    NString nstr = nstr_create("SomeData");
+    nmap_put(&users, "data", &nstr);
+    NString *val = nmap_get(&users, "data");
+    assert(val != NULL);
 
-   NString nstr = nstr_create("SomeData");
-   nmap_put(&users, "data", &nstr);
-   NString *val = nmap_get(&users, "data");
-   if (val != NULL)
-       nstr_print(val);
+    nstr_free(val);
 
-   nstr_free(val);
-   nmap_free(&users);
+    for (size_t i = 0; i < 1024; i++) {
+        nmap_put(&users, (void *)i, (void *)(i + 1));
+    }
+
+    nmap_del(&users, "key");
+    nmap_del(&users, "data");
+    it = nmap_iter(&users);
+    for (size_t i = 0; i < it.index; i++) {
+        Pair p = it.pairs[i];
+        printf("Pair <%d, %d>\n", (int)p.key, (int)p.value);
+    }
+
+    nmap_free(&users);
 }
 
 void run_tests() {

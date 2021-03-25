@@ -12,12 +12,23 @@ struct NMap {
 
 typedef struct NMap NMap;
 
+struct Pair {
+    void *key;
+    void *value;
+};
+
+typedef struct Pair Pair;
+
+struct Iterable {
+    Pair *pairs;
+    size_t index;
+};
+
+typedef struct Iterable Iterable;
+
 static uint64_t hash_mix(uint64_t key) {
-    key ^= (key >> 33);
     key *= 0xff51afd7ed558ccd;
-    key ^= (key >> 33);
-    key *= 0xc4ceb9fe1a85ec53;
-    key ^= (key >> 33);
+    key ^= key >> 32;
 
     return key;
 }
@@ -27,7 +38,7 @@ void nmap_grow(NMap *map, size_t cap);
 void nmap_put_u64(NMap *map, uint64_t key, uint64_t value) {
     if (!key || !value)
         return;
-    
+
     if (map->_len >= map->_cap)
         nmap_grow(map, map->_cap*2);
 
@@ -84,7 +95,7 @@ uint64_t nmap_get_u64(NMap *map, uint64_t key) {
 
     assert(IS_POW2(map->_cap));
     assert(map->_len < map->_cap);
-    
+
     size_t i = (size_t)hash_mix(key);
     for (;;) {
         i &= map->_cap - 1;
@@ -106,7 +117,8 @@ void nmap_del_u64(NMap *map, uint64_t key) {
         if (map->_keys[i] == key) {
             map->_keys[i] = 0;
             map->_values[i] = 0;
-   
+            return;
+        } else if (!map->_keys[i]) {
             return;
         }
     }
@@ -127,12 +139,41 @@ void *nmap_get(NMap *map, const void *key) {
 }
 
 
-inline size_t nmap_len(NMap *map) {
+extern inline size_t nmap_len(NMap *map) {
     return map->_len;
 }
 
-inline size_t nmap_cap(NMap *map) {
+extern inline size_t nmap_cap(NMap *map) {
     return map->_cap;
+}
+
+Pair nmap_pair(NMap *map, size_t index) {
+    Pair result = {0};
+    if (!map->_keys[index])
+        return result;
+
+    result.key = (void *)(uintptr_t)map->_keys[index];
+    result.value = (void *)(uintptr_t)map->_values[index];
+
+    return result;
+}
+
+Iterable nmap_iter(NMap *map) {
+    Iterable result = {0};
+    for (size_t i = 0; i < map->_cap; i++) {
+        Pair p = nmap_pair(map, i);
+        if (p.key) {
+            nbuf_push(result.pairs, p);
+            result.index++;
+        }
+    }
+
+    return result;
+}
+
+void free_iter(Iterable *it) {
+   nbuf_free(it->pairs);
+   it->index = 0;
 }
 
 void nmap_free(NMap *map) {
