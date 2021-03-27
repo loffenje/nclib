@@ -80,7 +80,7 @@ void blist_push_front_u64(BList *list, uint64_t item) {
 
     ++list->_len;
     
-    if (!node->next) {
+    if (node->next != NULL) {
         node->next->prev = node;
     }
     
@@ -126,6 +126,17 @@ Node *blist_find_u64(BList *list, uint64_t item) {
     }
 
     return found;
+}
+
+void blist_free(BList *list) {
+    Node *node = list->_head;
+    Node *tmp = NULL;
+    while (node != NULL) {
+        tmp = node;
+        node = node->next;
+        free(tmp);
+        --list->_len;
+    }
 }
 
 extern inline Node *blist_next(Node *node) {

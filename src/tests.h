@@ -158,13 +158,12 @@ void test_blist() {
         blist_push_front(&list, (void *)i);
     }
 
-    int search = 54;
+    int search = 52;
     Node *found = blist_find(&list, (void *)search);
+    assert(found->item == search);
     if (found != NULL) {
-        printf("Found: %ld\n", found->item);
         blist_remove(&list, found);
     }
-    
     
     Node *node = blist_front(&list);
     while (node != NULL) {
@@ -173,7 +172,8 @@ void test_blist() {
         node = blist_next(node);
     }
 
-    blist_free(&blist);
+   blist_free(&list);
+   assert(0 == blist_len(&list));
 }
 
 void run_tests() {
