@@ -5,6 +5,7 @@
 #include "nstring.h"
 #include "nbuf.h"
 #include "nmap.h"
+#include "blist.h"
 
 void test_nstr_create() {
     NString nstr = {};
@@ -141,7 +142,42 @@ void test_nmap() {
     printf("test map: Passed\n");
 }
 
+void test_blist() {
+    BList list = {0};
+    for (size_t i = 1; i < 10; i++) {
+        blist_push_back(&list, (void *)i);
+    }
+
+    assert(9 == blist_len(&list));
+
+    int value = 11;
+    blist_insert(&list, blist_next(blist_front(&list)), (void *)value);
+    blist_insert(&list, blist_back(&list), (void *)value);
+
+    for (size_t i = 50; i < 55; i++) {
+        blist_push_front(&list, (void *)i);
+    }
+
+    int search = 54;
+    Node *found = blist_find(&list, (void *)search);
+    if (found != NULL) {
+        printf("Found: %ld\n", found->item);
+        blist_remove(&list, found);
+    }
+    
+    
+    Node *node = blist_front(&list);
+    while (node != NULL) {
+
+        printf("Item: %ld\n", node->item);
+        node = blist_next(node);
+    }
+
+    blist_free(&blist);
+}
+
 void run_tests() {
+    test_blist();
     test_nstr();
     test_narr();
     test_nmap();

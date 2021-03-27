@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -g -Wall
+CFLAGS = -g -Wall -Wno-int-to-pointer-cast
 
 TARGET = main
 SRC_DIR = ./src
