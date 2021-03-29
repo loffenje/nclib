@@ -1,6 +1,8 @@
 #ifndef NBUF_H
 #define NBUF_H
 
+#define ALIGN_DOWN(n, a) ((n) & ~((a) - 1))
+#define ALIGN_UP(n, a) ALIGN_DOWN((n) + (a) - 1, (a))
 
 #include <limits.h>
 
@@ -8,13 +10,12 @@
 #  define SIZE_MAX __SIZE_MAX__
 #endif
 
-struct NBuffer {
+typedef struct NBuffer {
     size_t _len;
     size_t _cap;
     char _buf[];
-};
+} NBuffer;
 
-typedef struct NBuffer NBuffer;
 
 #define nbuf__hdr(b) ((NBuffer *)((char *)(b) - offsetof(NBuffer, _buf)))
 

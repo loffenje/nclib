@@ -4,8 +4,6 @@
 
 #define VERSION 0.1
 
-#define ALIGN_DOWN(n, a) ((n) & ~((a) - 1))
-#define ALIGN_UP(n, a) ALIGN_DOWN((n) + (a) - 1, (a))
 #define NSTR_STR(nstr) (nstr->_flushed ? nstr->_memory : nstr->_buf)
 #define NSTR_AT(nstr, i) (NSTR_STR(nstr) + i)
 
@@ -13,19 +11,15 @@
 
 typedef int32_t b32;
 
-struct NString {
+typedef struct NString {
     size_t _len;
     size_t _cap;
+    int32_t _buf_space;
     b32 _flushed;
     b32 _init;
-    b32 _freed;
     char *_memory;
     char _buf[BUF_SIZE];
-    int32_t _buf_space;
-};
-
-typedef struct NString NString;
-
+} NString;
 
 static void nstr__drain_buf(NString *nstr, const char *source, size_t source_len) {
     nstr->_buf_space -= source_len;
@@ -44,9 +38,6 @@ static void nstr__drain_buf(NString *nstr, const char *source, size_t source_len
 static void nstr__flush_buf(NString *nstr, size_t source_len) {
 
     size_t size = source_len + nstr->_cap;
-    int align_n = 8;
-    size = ALIGN_UP(size, align_n);
-    
     int buf_len = BUF_SIZE - nstr->_buf_space;
     nstr->_memory = xmalloc(size);
     
@@ -62,7 +53,7 @@ static void nstr__flush_buf(NString *nstr, size_t source_len) {
 
 static int nstr__sso_copy(NString *nstr, const char *source) {
     size_t source_len = strlen(source);
-    if (nstr->_buf_space > source_len) {
+    if (!nstr->_flushed && nstr->_buf_space > source_len) {
         nstr__drain_buf(nstr, source, source_len);     
         return 1;
     }
@@ -76,7 +67,6 @@ static int nstr__sso_copy(NString *nstr, const char *source) {
 NString nstr_create(const char *source) {
 
     size_t source_len = strlen(source);
-
     NString nstr = {0};
     nstr._buf_space = BUF_SIZE;
     if (source_len < BUF_SIZE) {
@@ -146,10 +136,8 @@ void nstr_copy(NString *source, NString *dest) {
 void nstr_free(NString *nstr) {
     nstr->_len = 0;
     nstr->_cap = 0;
-    nstr->_init = 0;
-    if (nstr->_flushed && !nstr->_freed) {
+    if (nstr->_flushed) {
       free(nstr->_memory);
-      nstr->_freed = 1;
     }
 
     nstr->_memory = NULL;
@@ -211,7 +199,7 @@ extern inline void nstr_clear(NString *nstr) {
 
 
 extern inline void nstr_print(NString *nstr) {
-    fprintf(stdout, "%s\n", NSTR_STR(nstr));
+    puts(NSTR_STR(nstr));
 }
 
 extern inline size_t nstr_len(NString *nstr) {

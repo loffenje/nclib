@@ -3,28 +3,25 @@
 
 #include "common.h"
 
-struct NMap {
+typedef struct NMap {
     uint64_t *_keys;
     uint64_t *_values;
     size_t _len;
     size_t _cap;
-};
+} NMap;
 
-typedef struct NMap NMap;
 
-struct Pair {
+typedef struct Pair {
     void *key;
     void *value;
-};
+} Pair;
 
-typedef struct Pair Pair;
 
-struct Iterable {
+typedef struct Iterable {
     Pair *pairs;
     size_t index;
-};
+} Iterable;
 
-typedef struct Iterable Iterable;
 
 static uint64_t hash_murmur(uint64_t key) {
     key *= 0xff51afd7ed558ccd;

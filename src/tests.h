@@ -7,6 +7,8 @@
 #include "nmap.h"
 #include "blist.h"
 
+//#define VERBOSE
+
 void test_nstr_create() {
     NString nstr = {};
     int N = 100;
@@ -20,12 +22,7 @@ void test_nstr_create() {
         nstr_push(&nstr, xyz);
     }
 
-
-    printf("Len: %ld\n", nstr_len(&nstr));
-    printf("Cap: %ld\n", nstr_cap(&nstr));
-
     assert(nstr_len(&nstr) == 900);
-
 
     NString nstr2 = nstr_create("Hello, world!");
     nstr_copy(&nstr2, &nstr);
@@ -75,15 +72,18 @@ void test_nstr_substr() {
 
     NString nstr2 = nstr_create("Aaaxyzfooclassic.hero.whatever");
     NString sub = nstr_substr(&nstr2,4,8);
+#ifdef VERBOSE
     nstr_print(&sub);
     nstr_print(&ret);
+#endif
 
     assert(nstr_compare_raw(&ret, "Te") == 0);
     assert(nstr_compare_raw(&sub, "yzfo") == 0);
 
+#ifdef VERBOSE
     NString test = nstr_substr(&nstr, 21, 2);
-
     nstr_print(&test);
+#endif 
     nstr_free(&nstr);
     nstr_free(&nstr2);
     nstr_free(&sub);
@@ -102,18 +102,18 @@ void test_nstr() {
 void test_narr() {
 
     int *arr = NULL;
-    nbuf_push(arr, 20);
-    nbuf_push(arr, 30);
-    nbuf_push(arr, 40);
+    for (int i = 0; i < 1024; i++) {
+        nbuf_push(arr, i);
+    }
 
-    printf("Len: %lu\n", nbuf_len(arr));
-    printf("Cap: %lu\n", nbuf_cap(arr));
+    assert(1024 == nbuf_len(arr));
     for (int *it = nbuf_begin(arr); it != nbuf_end(arr); ++it) {
+#ifdef VERBOSE
         printf("%d\n", *it);
+#endif
     }
 
     nbuf_free(arr);
-
     printf("test array: Passed\n"); 
 }
 
@@ -131,9 +131,10 @@ void test_nmap() {
 
     Iterable it = nmap_iter(&data);
     for (size_t i = 0; i < it.index; i++) {
+#ifdef VERBOSE
         Pair p = it.pairs[i];
-        (void)p;
-        // printf("Pair <%d, %d>\n", (int)p.key, (int)p.value);
+        printf("Pair <%d, %d>\n", (int)p.key, (int)p.value);
+#endif
     }
 
     free_iter(&it);
@@ -167,13 +168,16 @@ void test_blist() {
     
     Node *node = blist_front(&list);
     while (node != NULL) {
-
+#ifdef VERBOSE
         printf("Item: %ld\n", node->item);
+#endif
         node = blist_next(node);
     }
 
    blist_free(&list);
    assert(0 == blist_len(&list));
+
+   printf("test blist: Passed\n");
 }
 
 void run_tests() {
