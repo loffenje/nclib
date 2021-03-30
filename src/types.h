@@ -149,6 +149,5 @@ void unwrap(Dynamic *dynamic, void *out) {
             break;
     }
 }
-// Dynamic i = wrap_i32(4)
-// unwrap(&i)
+
 #endif
