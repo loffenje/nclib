@@ -6,6 +6,7 @@
 #include "nbuf.h"
 #include "nmap.h"
 #include "blist.h"
+#include "types.h"
 
 //#define VERBOSE
 
@@ -180,7 +181,98 @@ void test_blist() {
    printf("test blist: Passed\n");
 }
 
+void test_types() {
+    Dynamic dynamic;
+    int8_t i8 = 10;
+    uint8_t u8 = 10;
+    int16_t i16 = 10;
+    uint16_t u16 = 10;
+    int32_t i32 = 10;
+    uint32_t u32 = 10;
+    int64_t i64 = 10;
+    uint64_t u64 = 10;
+    float f32 = 10.123;
+    double f64 = 10.123;
+    
+    int8_t i8_result; 
+    wrap_i8(&dynamic, i8);
+    unwrap(&dynamic, &i8_result);
+    assert(i8_result == i8);   
+
+    uint8_t u8_result; 
+    wrap_u8(&dynamic, u8);
+    unwrap(&dynamic, &u8_result);
+    assert(u8_result == u8);   
+    
+    int16_t i16_result; 
+    wrap_i16(&dynamic, i16);
+    unwrap(&dynamic, &i16_result);
+    assert(i16_result == i16);   
+
+    uint16_t u16_result; 
+    wrap_u16(&dynamic, u16);
+    unwrap(&dynamic, &u16_result);
+    assert(u16_result == u16);   
+
+    int32_t i32_result; 
+    wrap_i32(&dynamic, i32);
+    unwrap(&dynamic, &i32_result);
+    assert(i32_result == i32);   
+
+    uint32_t u32_result; 
+    wrap_u32(&dynamic, u32);
+    unwrap(&dynamic, &u32_result);
+    assert(u32_result == u32);   
+
+    int64_t i64_result; 
+    wrap_i64(&dynamic, i64);
+    unwrap(&dynamic, &i64_result);
+    assert(i64_result == i64);   
+
+    uint64_t u64_result; 
+    wrap_u64(&dynamic, u64);
+    unwrap(&dynamic, &u64_result);
+    assert(u64_result == u64);   
+    
+    float f32_result; 
+    wrap_f32(&dynamic, f32);
+    unwrap(&dynamic, &f32_result);
+    assert(f32_result == f32);   
+
+    double f64_result; 
+    wrap_f64(&dynamic, f64);
+    unwrap(&dynamic, &f64_result);
+    assert(f64_result == f64);   
+
+#ifdef VERBOSE
+
+    NString nstr = nstr_create("Foo");
+    NMap nmap = {0};
+    nmap_put(&nmap, "key", "value");
+    BList list = {0};
+    blist_push_back(&list, "item");
+
+    NString nstr_result = {0};
+    NMap nmap_result = {0};
+    BList blist_result = {0};
+
+    wrap_nstr(&dynamic, &nstr);
+    unwrap(&dynamic, &nstr_result);
+    nstr_print(&nstr_result);
+
+    wrap_nmap(&dynamic, &nmap);
+    unwrap(&dynamic, &nmap_result);
+
+    wrap_blist(&dynamic, &list);
+    unwrap(&dynamic, &blist_result);
+
+#endif
+
+    printf("test types: Passed\n");
+}
+
 void run_tests() {
+    test_types();
     test_blist();
     test_nstr();
     test_narr();
