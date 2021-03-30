@@ -1,9 +1,11 @@
 #ifndef TYPES_H
 #define TYPES_H
 
+#define wrap(Dynamic, value, type) wrap_##type(Dynamic, value)
+
 typedef enum Type {
     I8,U8,I16,U16,I32,U32,I64,U64,F32,F64,
-    STRING,NSTRING,BLIST,PTR,NMAP
+    NSTRING,BLIST,PTR,NMAP
 } Type;
 
 
@@ -21,7 +23,6 @@ typedef struct Dynamic {
         uint64_t u64;
         double f64;
         float f32;
-        char* str;
         uintptr_t ptr;
         NString nstr;
         BList blist;
@@ -30,74 +31,82 @@ typedef struct Dynamic {
 
 } Dynamic;
 
-extern inline void wrap_i8(Dynamic *dynamic, int8_t value) {
+extern inline void wrap_int8_t(Dynamic *dynamic, int8_t value) {
     dynamic->_data.i8 = value;
     dynamic->_type = I8;
 }
 
-extern inline void wrap_u8(Dynamic *dynamic, uint8_t value) {
+extern inline void wrap_uint8_t(Dynamic *dynamic, uint8_t value) {
     dynamic->_data.u8 = value;
     dynamic->_type = U8;
 }
 
-extern inline void wrap_i16(Dynamic *dynamic, int16_t value) {
+extern inline void wrap_int16_t(Dynamic *dynamic, int16_t value) {
     dynamic->_data.i16 = value;
     dynamic->_type = I16;
 }
 
-extern inline void wrap_u16(Dynamic *dynamic, uint16_t value) {
+extern inline void wrap_uint16_t(Dynamic *dynamic, uint16_t value) {
     dynamic->_data.u16 = value;
     dynamic->_type = U16;
 }
 
-extern inline void wrap_i32(Dynamic *dynamic, int32_t value) {
+extern inline void wrap_int32_t(Dynamic *dynamic, int32_t value) {
     dynamic->_data.i32 = value;
     dynamic->_type = I32;
 }
 
-extern inline void wrap_u32(Dynamic *dynamic, uint32_t value) {
+extern inline void wrap_uint32_t(Dynamic *dynamic, uint32_t value) {
     dynamic->_data.u32 = value;
     dynamic->_type = U32;
 }
 
-extern inline void wrap_i64(Dynamic *dynamic, int64_t value) {
+extern inline void wrap_int64_t(Dynamic *dynamic, int64_t value) {
     dynamic->_data.i64 = value;
     dynamic->_type = I64;
 }
 
-extern inline void wrap_u64(Dynamic *dynamic, uint64_t value) {
+extern inline void wrap_uint64_t(Dynamic *dynamic, uint64_t value) {
     dynamic->_data.u64 = value;
     dynamic->_type = U64;
 }
 
-extern inline void wrap_ptr(Dynamic *dynamic, uintptr_t value) {
+extern inline void wrap_uintptr_t(Dynamic *dynamic, uintptr_t value) {
     dynamic->_data.ptr = value;
     dynamic->_type = PTR;
 }
 
-extern inline void wrap_f32(Dynamic *dynamic, float value) {
+extern inline void wrap_float(Dynamic *dynamic, float value) {
     dynamic->_data.f32 = value;
     dynamic->_type = F32;
 }
 
-extern inline void wrap_f64(Dynamic *dynamic, double value) {
+extern inline void wrap_double(Dynamic *dynamic, double value) {
     dynamic->_data.f64 = value;
     dynamic->_type = F64;
 }
 
-extern inline void wrap_nstr(Dynamic *dynamic, NString *value) {
+extern inline void wrap_NString(Dynamic *dynamic, NString *value) {
     dynamic->_data.nstr = *value;
     dynamic->_type = NSTRING;
 }
 
-extern inline void wrap_blist(Dynamic *dynamic, BList *value) {
+extern inline void wrap_BList(Dynamic *dynamic, BList *value) {
     dynamic->_data.blist = *value;
     dynamic->_type = BLIST;
 }
 
-extern inline void wrap_nmap(Dynamic *dynamic, NMap *value) {
+extern inline void wrap_NMap(Dynamic *dynamic, NMap *value) {
     dynamic->_data.nmap = *value;
     dynamic->_type = NMAP;
+}
+
+extern inline void wrap_int(Dynamic *dynamic, int value) {
+    wrap_int32_t(dynamic, (int32_t)value);
+}
+
+extern inline void wrap_char(Dynamic *dynamic, char value) {
+    wrap_int8_t(dynamic, (int8_t)value);
 }
 
 void unwrap(Dynamic *dynamic, void *out) {
@@ -131,9 +140,6 @@ void unwrap(Dynamic *dynamic, void *out) {
             break;
         case F64:
             *(double *)out = dynamic->_data.f64;
-            break;
-        case STRING:
-            out = dynamic->_data.str;
             break;
         case PTR:
             *(uintptr_t *)out = dynamic->_data.ptr;

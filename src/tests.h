@@ -195,52 +195,52 @@ void test_types() {
     double f64 = 10.123;
     
     int8_t i8_result; 
-    wrap_i8(&dynamic, i8);
+    wrap(&dynamic, i8, int8_t);
     unwrap(&dynamic, &i8_result);
     assert(i8_result == i8);   
 
     uint8_t u8_result; 
-    wrap_u8(&dynamic, u8);
+    wrap(&dynamic, u8, uint8_t);
     unwrap(&dynamic, &u8_result);
     assert(u8_result == u8);   
     
     int16_t i16_result; 
-    wrap_i16(&dynamic, i16);
+    wrap(&dynamic, i16, int16_t);
     unwrap(&dynamic, &i16_result);
     assert(i16_result == i16);   
 
     uint16_t u16_result; 
-    wrap_u16(&dynamic, u16);
+    wrap(&dynamic, u16, uint16_t);
     unwrap(&dynamic, &u16_result);
     assert(u16_result == u16);   
 
     int32_t i32_result; 
-    wrap_i32(&dynamic, i32);
+    wrap(&dynamic, i32, int32_t);
     unwrap(&dynamic, &i32_result);
     assert(i32_result == i32);   
 
     uint32_t u32_result; 
-    wrap_u32(&dynamic, u32);
+    wrap(&dynamic, u32, uint32_t);
     unwrap(&dynamic, &u32_result);
     assert(u32_result == u32);   
 
     int64_t i64_result; 
-    wrap_i64(&dynamic, i64);
+    wrap(&dynamic, i64, int64_t);
     unwrap(&dynamic, &i64_result);
     assert(i64_result == i64);   
 
     uint64_t u64_result; 
-    wrap_u64(&dynamic, u64);
+    wrap(&dynamic, u64, uint64_t);
     unwrap(&dynamic, &u64_result);
     assert(u64_result == u64);   
     
     float f32_result; 
-    wrap_f32(&dynamic, f32);
+    wrap(&dynamic, f32, float);
     unwrap(&dynamic, &f32_result);
     assert(f32_result == f32);   
 
     double f64_result; 
-    wrap_f64(&dynamic, f64);
+    wrap(&dynamic, f64, double);
     unwrap(&dynamic, &f64_result);
     assert(f64_result == f64);   
 
@@ -256,14 +256,14 @@ void test_types() {
     NMap nmap_result = {0};
     BList blist_result = {0};
 
-    wrap_nstr(&dynamic, &nstr);
+    wrap(&dynamic, &nstr, NString);
     unwrap(&dynamic, &nstr_result);
     nstr_print(&nstr_result);
 
-    wrap_nmap(&dynamic, &nmap);
+    wrap(&dynamic, &nmap, NMap);
     unwrap(&dynamic, &nmap_result);
 
-    wrap_blist(&dynamic, &list);
+    wrap(&dynamic, &list, BList);
     unwrap(&dynamic, &blist_result);
 
 #endif
