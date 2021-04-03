@@ -7,6 +7,7 @@
 #include "nmap.h"
 #include "blist.h"
 #include "types.h"
+#include "nqueue.h"
 
 //#define VERBOSE
 
@@ -271,12 +272,56 @@ void test_types() {
     printf("test types: Passed\n");
 }
 
+void test_nqueue() {
+    NQueue *queue = nqueue_create();
+
+    assert(nqueue_size(queue) == 0);
+    assert(nqueue_head(queue) == NULL);
+
+    nqueue_push(queue, 1);
+
+    assert(nqueue_size(queue) == 1);
+    assert(nqueue_head(queue) == 1);
+
+    nqueue_pop(queue);
+
+    assert(nqueue_size(queue) == 0);
+    assert(nqueue_head(queue) == NULL);
+
+    nqueue_push(queue, 3);
+    nqueue_push(queue, 2);
+    nqueue_push(queue, 1);
+
+    assert(nqueue_size(queue) == 3);
+    assert(nqueue_head(queue) == 3);
+
+    nqueue_pop(queue);
+
+    assert(nqueue_size(queue) == 2);
+    assert(nqueue_head(queue) == 2);
+
+    nqueue_pop(queue);
+
+    assert(nqueue_size(queue) == 1);
+    assert(nqueue_head(queue) == 1);
+
+    nqueue_pop(queue);
+
+    assert(nqueue_size(queue) == 0);
+    assert(nqueue_head(queue) == 0);
+
+    nqueue_free(queue);
+
+    printf("test queue: Passed\n");
+}
+
 void run_tests() {
     test_types();
     test_blist();
     test_nstr();
     test_narr();
     test_nmap();
+    test_nqueue();
 }
 
 #endif
