@@ -183,7 +183,7 @@ void test_blist() {
 }
 
 void test_types() {
-    Dynamic dynamic;
+    Any any;
     int8_t i8 = 10;
     uint8_t u8 = 10;
     int16_t i16 = 10;
@@ -196,53 +196,53 @@ void test_types() {
     double f64 = 10.123;
     
     int8_t i8_result; 
-    wrap(&dynamic, i8, int8_t);
-    unwrap(&dynamic, &i8_result);
+    any_wrap(&any, i8, int8_t);
+    any_unwrap(&any, &i8_result);
     assert(i8_result == i8);   
 
     uint8_t u8_result; 
-    wrap(&dynamic, u8, uint8_t);
-    unwrap(&dynamic, &u8_result);
+    any_wrap(&any, u8, uint8_t);
+    any_unwrap(&any, &u8_result);
     assert(u8_result == u8);   
     
     int16_t i16_result; 
-    wrap(&dynamic, i16, int16_t);
-    unwrap(&dynamic, &i16_result);
+    any_wrap(&any, i16, int16_t);
+    any_unwrap(&any, &i16_result);
     assert(i16_result == i16);   
 
     uint16_t u16_result; 
-    wrap(&dynamic, u16, uint16_t);
-    unwrap(&dynamic, &u16_result);
+    any_wrap(&any, u16, uint16_t);
+    any_unwrap(&any, &u16_result);
     assert(u16_result == u16);   
 
     int32_t i32_result; 
-    wrap(&dynamic, i32, int32_t);
-    unwrap(&dynamic, &i32_result);
+    any_wrap(&any, i32, int32_t);
+    any_unwrap(&any, &i32_result);
     assert(i32_result == i32);   
 
     uint32_t u32_result; 
-    wrap(&dynamic, u32, uint32_t);
-    unwrap(&dynamic, &u32_result);
+    any_wrap(&any, u32, uint32_t);
+    any_unwrap(&any, &u32_result);
     assert(u32_result == u32);   
 
     int64_t i64_result; 
-    wrap(&dynamic, i64, int64_t);
-    unwrap(&dynamic, &i64_result);
+    any_wrap(&any, i64, int64_t);
+    any_unwrap(&any, &i64_result);
     assert(i64_result == i64);   
 
     uint64_t u64_result; 
-    wrap(&dynamic, u64, uint64_t);
-    unwrap(&dynamic, &u64_result);
+    any_wrap(&any, u64, uint64_t);
+    any_unwrap(&any, &u64_result);
     assert(u64_result == u64);   
     
     float f32_result; 
-    wrap(&dynamic, f32, float);
-    unwrap(&dynamic, &f32_result);
+    any_wrap(&any, f32, float);
+    any_unwrap(&any, &f32_result);
     assert(f32_result == f32);   
 
     double f64_result; 
-    wrap(&dynamic, f64, double);
-    unwrap(&dynamic, &f64_result);
+    any_wrap(&any, f64, double);
+    any_unwrap(&any, &f64_result);
     assert(f64_result == f64);   
 
 #ifdef VERBOSE
@@ -257,15 +257,15 @@ void test_types() {
     NMap nmap_result = {0};
     BList blist_result = {0};
 
-    wrap(&dynamic, &nstr, NString);
-    unwrap(&dynamic, &nstr_result);
+    any_wrap(&any, &nstr, NString);
+    any_unwrap(&any, &nstr_result);
     nstr_print(&nstr_result);
 
-    wrap(&dynamic, &nmap, NMap);
-    unwrap(&dynamic, &nmap_result);
+    any_wrap(&any, &nmap, NMap);
+    any_unwrap(&any, &nmap_result);
 
-    wrap(&dynamic, &list, BList);
-    unwrap(&dynamic, &blist_result);
+    any_wrap(&any, &list, BList);
+    any_unwrap(&any, &blist_result);
 
 #endif
 
