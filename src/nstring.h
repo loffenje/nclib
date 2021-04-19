@@ -173,7 +173,6 @@ NString nstr_substr(NString *nstr, size_t pos, size_t count) {
     return result;
 }
 
-
 extern inline bool nstr_starts_with(NString *nstr, const char *str) {
     return memcmp(NSTR_STR(nstr), str, strlen(str)) == 0;
 }

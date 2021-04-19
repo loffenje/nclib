@@ -8,6 +8,7 @@
 #include "blist.h"
 #include "types.h"
 #include "nqueue.h"
+#include "utils.h"
 
 //#define VERBOSE
 
@@ -315,6 +316,30 @@ void test_nqueue() {
     printf("test queue: Passed\n");
 }
 
+void test_utils() {
+#if 0
+   printf("Print name\n");
+   NString name = {0};
+   int fd = fileno(stdin);
+   get_line(fd, &name);
+   nstr_print(&name);
+#endif
+
+   int fd = open("test.txt", O_RDONLY);
+   NString line = {};
+   defer({ 
+           nstr_free(&line);
+           close(fd);
+           printf("cleaned\n"); 
+   });
+
+   while (get_line(fd, &line)) {
+       nstr_print(&line);
+   }
+
+   nstr_free(&line);
+}
+
 void run_tests() {
     test_types();
     test_blist();
@@ -322,6 +347,7 @@ void run_tests() {
     test_narr();
     test_nmap();
     test_nqueue();
+    test_utils();
 }
 
 #endif
